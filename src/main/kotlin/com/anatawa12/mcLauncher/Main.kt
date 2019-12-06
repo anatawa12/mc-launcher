@@ -4,6 +4,8 @@ import com.anatawa12.mcLauncher.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.json.VersionJson
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Natives
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.File
@@ -72,10 +74,18 @@ object Main {
     fun loadVersionJson(version: String): VersionJson {
         val jsonFile = appDataDir.resolve("versions").resolve(version).resolve("$version.json")
 
-        try {
-            return versionJsonAdapter.fromJson(jsonFile.readText()) ?: knownError("$version.json is valid")
+        val jsonText = try {
+            jsonFile.readText()
         } catch (e: FileNotFoundException) {
             knownError("$version.json is not a file.", e)
+        }
+
+        try {
+            return versionJsonAdapter.fromJson(jsonText) ?: knownError("$version.json is valid")
+        } catch (e: JsonEncodingException) {
+            knownError("$version.json is valid", e)
+        } catch (e: JsonDataException) {
+            knownError("$version.json is valid", e)
         }
     }
 
