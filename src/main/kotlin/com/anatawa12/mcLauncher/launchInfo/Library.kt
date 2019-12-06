@@ -43,7 +43,7 @@ data class Library(
 
                 val baseUrl = json.url ?: DEFAULT_BASE_URL
 
-                val path = "${group.replace('.', ':')}/$artifact/$version/$jarName"
+                val path = "${group.replace('.', '/')}/$artifact/$version/$jarName"
 
                 return persistentMapOf(
                     "" to Artifact(
