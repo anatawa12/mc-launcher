@@ -21,7 +21,7 @@ object DateJsonAdapter : JsonAdapter<Date>(), JsonAdapter.Factory {
     @Throws(Exception::class)
     override fun fromJson(reader: JsonReader): Date {
         val string = reader.nextString()
-        if (string[23] == ':')
+        if (string[22] == ':')
             return sdFormat0.parse(string)
         else
             return sdFormat1.parse(string)
