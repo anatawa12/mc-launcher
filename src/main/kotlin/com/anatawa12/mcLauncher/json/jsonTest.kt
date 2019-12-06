@@ -1,7 +1,5 @@
-package com.anatawa12.mcLauncher
+package com.anatawa12.mcLauncher.json
 
-import com.anatawa12.mcLauncher.json.DateJsonAdapter
-import com.anatawa12.mcLauncher.json.VersionJson
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
