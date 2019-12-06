@@ -32,7 +32,7 @@ data class LaunchInfo private constructor(
 
             id = version.id
 
-            libraries += version.libraries.map { Library(it) }
+            libraries.addAll(0, version.libraries.map { Library(it) })
             logging += logging
             mainClass = version.mainClass
             minecraftArguments = version.minecraftArguments
