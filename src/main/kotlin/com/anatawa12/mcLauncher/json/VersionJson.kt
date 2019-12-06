@@ -15,6 +15,6 @@ data class VersionJson(
     val releaseTime: Date,
     val time: Date,
     val type: String,
-    val inheritsFrom: String,
-    val jar: String
+    val inheritsFrom: String? = null,
+    val jar: String? = null
 )

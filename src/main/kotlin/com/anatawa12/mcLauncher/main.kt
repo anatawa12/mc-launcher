@@ -9,8 +9,8 @@ import okio.Buffer
 import java.io.File
 
 fun main() {
-    //val fileName = "1.7.10"
-    val fileName = "1.7.10-Forge10.13.4.1614-1.7.10"
+    val fileName = "1.7.10"
+    //val fileName = "1.7.10-Forge10.13.4.1614-1.7.10"
 
     val adapter = Moshi.Builder()
         .add(DateJsonAdapter)
