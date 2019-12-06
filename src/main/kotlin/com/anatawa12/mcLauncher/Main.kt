@@ -3,6 +3,7 @@ package com.anatawa12.mcLauncher
 import com.anatawa12.mcLauncher.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.json.VersionJson
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
+import com.anatawa12.mcLauncher.launchInfo.Natives
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.File
@@ -25,7 +26,10 @@ object Main {
     fun main(args: Array<String>) {
         init()
 
-        println(loadLaunchInfo(args[0]))
+        val info = loadLaunchInfo(args[0])
+
+        println(info)
+        println(createArguments(info))
     }
 
     private fun init() {
@@ -73,5 +77,24 @@ object Main {
         } catch (e: FileNotFoundException) {
             knownError("$version.json is not a file.", e)
         }
+    }
+
+    // TODO Support ${arch}
+    fun classifier(natives: Natives): String = when (Platform.current) {
+        Platform.Linux -> natives.linux
+        Platform.MacOS -> natives.osx
+        Platform.Windows -> natives.windows
+    }
+
+    fun createArguments(info: LaunchInfo): String = buildString {
+        val librariesDir = appDataDir.resolve("libraries")
+        append("-cp ")
+        info.libraries
+            .asSequence()
+            .filter { it.extract == null }
+            .map { it.downloads[classifier(it.natives)] ?: knownError("downloads invalid") }
+            .map { librariesDir.resolve(it.path) }
+            .joinTo(this, separator = File.pathSeparator, postfix = File.pathSeparator)
+        append("$appDataDir/versions/${info.jar}/${info.jar}.jar")
     }
 }
