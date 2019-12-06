@@ -8,12 +8,14 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("com.squareup.moshi:moshi:1.9.2")
     implementation("com.squareup.moshi:moshi-kotlin:1.9.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3")
 
     testCompile("junit", "junit", "4.12")
 }
