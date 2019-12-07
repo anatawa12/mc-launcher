@@ -66,9 +66,8 @@ class Main(
         Platform.Windows -> natives.windows
     }
 
-    fun createArguments(info: LaunchInfo): String = buildString {
+    fun createClassPath(info: LaunchInfo): String = buildString {
         val librariesDir = appDataDir.resolve("libraries")
-        append("-cp ")
         info.libraries
             .asSequence()
             .map { inList ->
@@ -108,7 +107,7 @@ class Main(
             val info = main.loadLaunchInfo(args[0])
 
             println(info)
-            println(main.createArguments(info))
+            println(main.createClassPath(info))
         }
     }
 }
