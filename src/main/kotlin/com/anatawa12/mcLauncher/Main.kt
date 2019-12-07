@@ -57,7 +57,7 @@ class Main(
         } catch (e: JsonEncodingException) {
             throw KnownErrorException.InvalidVersionJson(version, e)
         } catch (e: JsonDataException) {
-            throw KnownErrorException.InvalidVersionJson(version, e)
+            throw KnownErrorException.InvalidVersionJsonData(version, e)
         }
     }
 
