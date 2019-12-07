@@ -2,6 +2,7 @@ package com.anatawa12.mcLauncher
 
 import com.anatawa12.mcLauncher.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.json.VersionJson
+import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Natives
 import com.squareup.moshi.JsonDataException
@@ -67,9 +68,8 @@ class Main(
         Platform.Windows -> natives.windows
     }
 
-    fun createClassPath(info: LaunchInfo): String = buildString {
-        val librariesDir = appDataDir.resolve("libraries")
-        info.libraries
+    fun getLoadArtifacts(info: LaunchInfo): Sequence<Artifact> {
+        return info.libraries
             .asSequence()
             .map { inList ->
                 inList
@@ -80,6 +80,11 @@ class Main(
                     .map { it.value.minBy { File(it.path).parentFile.name }!! }
             }
             .flatMap { it.asSequence() }
+    }
+
+    fun createClassPath(info: LaunchInfo): String = buildString {
+        val librariesDir = appDataDir.resolve("libraries")
+        getLoadArtifacts(info)
             .map { librariesDir.resolve(it.path) }
             .joinTo(this, separator = File.pathSeparator, postfix = File.pathSeparator)
         append(appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").path)
