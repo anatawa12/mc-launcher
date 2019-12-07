@@ -10,7 +10,7 @@ import kotlinx.collections.immutable.toImmutableMap
 data class LaunchInfo private constructor(
     var id: String,
     val downloads: ImmutableMap<String, DownloadFile>,
-    val libraries: ImmutableList<Library>,
+    val libraries: ImmutableList<ImmutableList<Library>>,
     val logging: ImmutableMap<String, Logging>,
     var mainClass: String,
     var minecraftArguments: String,
@@ -19,7 +19,7 @@ data class LaunchInfo private constructor(
     class Builder(jsonName: String) {
         var id: String? = null
         val downloads: MutableMap<String, DownloadFile> = mutableMapOf()
-        val libraries: MutableList<Library> = mutableListOf()
+        val libraries: MutableList<ImmutableList<Library>> = mutableListOf()
         val logging: MutableMap<String, Logging> = mutableMapOf()
         var mainClass: String? = null
         var minecraftArguments: String? = null
@@ -32,7 +32,7 @@ data class LaunchInfo private constructor(
 
             id = version.id
 
-            libraries.addAll(0, version.libraries.map { Library(it) })
+            libraries.add(0, version.libraries.map { Library(it) }.toImmutableList())
             logging += logging
             mainClass = version.mainClass
             minecraftArguments = version.minecraftArguments

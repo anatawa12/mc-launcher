@@ -101,10 +101,15 @@ object Main {
         append("-cp ")
         info.libraries
             .asSequence()
-            .filter { it.extract == null }
-            .map { it.downloads[classifier(it.natives)] ?: knownError("downloads invalid") }
-            .groupBy { File(it.path).parentFile.parent }
-            .map { it.value.minBy { File(it.path).parentFile.name }!! }
+            .map { inList ->
+                inList
+                    .asSequence()
+                    .filter { it.extract == null }
+                    .map { it.downloads[classifier(it.natives)] ?: knownError("downloads invalid") }
+                    .groupBy { File(it.path).parentFile.parent }
+                    .map { it.value.minBy { File(it.path).parentFile.name }!! }
+            }
+            .flatMap { it.asSequence() }
             .map { librariesDir.resolve(it.path) }
             .joinTo(this, separator = File.pathSeparator, postfix = File.pathSeparator)
         append("$appDataDir/versions/${info.jar}/${info.jar}.jar")
