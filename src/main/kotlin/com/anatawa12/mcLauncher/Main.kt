@@ -62,7 +62,7 @@ class Main(
     }
 
     // TODO Support ${arch}
-    fun classifier(natives: Natives): String = when (platform) {
+    private fun classifier(natives: Natives): String = when (platform) {
         Platform.Linux -> natives.linux
         Platform.MacOS -> natives.osx
         Platform.Windows -> natives.windows
