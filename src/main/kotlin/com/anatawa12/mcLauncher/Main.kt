@@ -12,7 +12,8 @@ import java.io.File
 import java.io.FileNotFoundException
 
 class Main(
-    val appDataDir: File
+    val appDataDir: File,
+    val platform: Platform
 ) {
     val moshi = Moshi.Builder()
         .add(DateJsonAdapter)
@@ -60,7 +61,7 @@ class Main(
     }
 
     // TODO Support ${arch}
-    fun classifier(natives: Natives): String = when (Platform.current) {
+    fun classifier(natives: Natives): String = when (platform) {
         Platform.Linux -> natives.linux
         Platform.MacOS -> natives.osx
         Platform.Windows -> natives.windows
@@ -102,7 +103,7 @@ class Main(
             }
             val appDataDir = File(appDataDirPath)
 
-            val main = Main(appDataDir)
+            val main = Main(appDataDir, Platform.current)
 
             val info = main.loadLaunchInfo(args[0])
 
