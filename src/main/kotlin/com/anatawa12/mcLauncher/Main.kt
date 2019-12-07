@@ -81,7 +81,7 @@ class Main(
             .flatMap { it.asSequence() }
             .map { librariesDir.resolve(it.path) }
             .joinTo(this, separator = File.pathSeparator, postfix = File.pathSeparator)
-        append("$appDataDir/versions/${info.jar}/${info.jar}.jar")
+        append(appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").path)
     }
 
     companion object {
