@@ -11,45 +11,15 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.File
 import java.io.FileNotFoundException
 
-object Main {
+class Main(
+    val appDataDir: File
+) {
     val moshi = Moshi.Builder()
         .add(DateJsonAdapter)
         .add(KotlinJsonAdapterFactory())
         .build()
 
     val versionJsonAdapter = moshi.adapter(VersionJson::class.java)
-
-    lateinit var homeDir: File
-        private set
-    lateinit var appDataDir: File
-        private set
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        init()
-
-        val info = loadLaunchInfo(args[0])
-
-        println(info)
-        println(createArguments(info))
-    }
-
-    private fun init() {
-        homeDir = File(System.getProperty("user.home"))
-        val appDataDirPath: String
-        when (Platform.current) {
-            Platform.Linux -> {
-                appDataDirPath = "$homeDir/.minecraft"
-            }
-            Platform.MacOS -> {
-                appDataDirPath = "$homeDir/Library/Application Support/minecraft"
-            }
-            Platform.Windows -> {
-                appDataDirPath = "${System.getenv("APPDATA")}\\.minecraft"
-            }
-        }
-        appDataDir = File(appDataDirPath)
-    }
 
     fun loadLaunchInfo(version: String): LaunchInfo {
         val loadedVersions = mutableListOf<VersionJson>()
@@ -113,5 +83,32 @@ object Main {
             .map { librariesDir.resolve(it.path) }
             .joinTo(this, separator = File.pathSeparator, postfix = File.pathSeparator)
         append("$appDataDir/versions/${info.jar}/${info.jar}.jar")
+    }
+
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val homeDir = File(System.getProperty("user.home"))
+            val appDataDirPath: String
+            when (Platform.current) {
+                Platform.Linux -> {
+                    appDataDirPath = "$homeDir/.minecraft"
+                }
+                Platform.MacOS -> {
+                    appDataDirPath = "$homeDir/Library/Application Support/minecraft"
+                }
+                Platform.Windows -> {
+                    appDataDirPath = "${System.getenv("APPDATA")}\\.minecraft"
+                }
+            }
+            val appDataDir = File(appDataDirPath)
+
+            val main = Main(appDataDir)
+
+            val info = main.loadLaunchInfo(args[0])
+
+            println(info)
+            println(main.createArguments(info))
+        }
     }
 }
