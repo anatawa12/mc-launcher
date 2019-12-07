@@ -5,9 +5,6 @@ sealed class KnownErrorException : Exception {
     constructor(message: String) : super(message)
     constructor(message: String, cause: Throwable?) : super(message, cause)
 
-    class InheritsFromIsLooping(entry: String) :
-        KnownErrorException("'inheritsFrom' is looping! entry version is '$entry'")
-
     class InvalidVersionJson(version: String, cause: Throwable? = null) :
         KnownErrorException("$version.json is invalid", cause)
 

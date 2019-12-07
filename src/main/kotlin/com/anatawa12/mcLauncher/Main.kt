@@ -28,7 +28,7 @@ class Main(
         var versionJsonVersion: String? = version
         while (versionJsonVersion != null) {
             if (loadedVersions.any { it.id == versionJsonVersion })
-                throw KnownErrorException.InheritsFromIsLooping(version)
+                throw KnownErrorException.InvalidVersionJsonData(version)
 
             val loadedVersionJson = loadVersionJson(versionJsonVersion)
             loadedVersions += loadedVersionJson
