@@ -1,13 +1,19 @@
 package com.anatawa12.mcLauncher
 
 
-class KnownErrorException : Exception {
+sealed class KnownErrorException : Exception {
     constructor(message: String) : super(message)
-    constructor(message: String, cause: Throwable) : super(message, cause)
+    constructor(message: String, cause: Throwable?) : super(message, cause)
+
+    class InheritsFromIsLooping(entry: String) :
+        KnownErrorException("'inheritsFrom' is looping! entry version is '$entry'")
+
+    class InvalidVersionJson(version: String, cause: Throwable? = null) :
+        KnownErrorException("$version.json is invalid", cause)
+
+    class InvalidVersionJsonData(version: String, cause: Throwable? = null) :
+        KnownErrorException("$version.json has invalid data", cause)
+
+    class VersionJsonNotFile(version: String, cause: Throwable) :
+        KnownErrorException("$version.json is not a file.", cause)
 }
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun knownError(message: Any): Nothing = throw KnownErrorException(message.toString())
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun knownError(message: Any, cause: Throwable): Nothing = throw KnownErrorException(message.toString(), cause)

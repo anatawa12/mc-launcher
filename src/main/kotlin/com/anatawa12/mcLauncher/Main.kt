@@ -28,7 +28,7 @@ class Main(
         var versionJsonVersion: String? = version
         while (versionJsonVersion != null) {
             if (loadedVersions.any { it.id == versionJsonVersion })
-                knownError("'inheritsFrom' is looping! entry version is '$version'")
+                throw KnownErrorException.InheritsFromIsLooping(version)
 
             val loadedVersionJson = loadVersionJson(versionJsonVersion)
             loadedVersions += loadedVersionJson
@@ -49,15 +49,15 @@ class Main(
         val jsonText = try {
             jsonFile.readText()
         } catch (e: FileNotFoundException) {
-            knownError("$version.json is not a file.", e)
+            throw KnownErrorException.VersionJsonNotFile(version, e)
         }
 
         try {
-            return versionJsonAdapter.fromJson(jsonText) ?: knownError("$version.json is valid")
+            return versionJsonAdapter.fromJson(jsonText) ?: throw KnownErrorException.InvalidVersionJson(version)
         } catch (e: JsonEncodingException) {
-            knownError("$version.json is valid", e)
+            throw KnownErrorException.InvalidVersionJson(version, e)
         } catch (e: JsonDataException) {
-            knownError("$version.json is valid", e)
+            throw KnownErrorException.InvalidVersionJson(version, e)
         }
     }
 
@@ -75,7 +75,10 @@ class Main(
                 inList
                     .asSequence()
                     .filter { it.extract == null }
-                    .map { it.downloads[classifier(it.natives)] ?: knownError("downloads invalid") }
+                    .map {
+                        it.downloads[classifier(it.natives)]
+                            ?: throw KnownErrorException.InvalidVersionJsonData("downloads invalid")
+                    }
                     .groupBy { File(it.path).parentFile.parent }
                     .map { it.value.minBy { File(it.path).parentFile.name }!! }
             }
