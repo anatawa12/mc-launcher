@@ -18,6 +18,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3")
 
     testCompile("junit", "junit", "4.12")
+    testImplementation("io.mockk:mockk:1.9.3")
 }
 
 configure<JavaPluginConvention> {
