@@ -19,6 +19,7 @@ class Launcher(
     val platform: Platform = profile.platform
     lateinit var info: LaunchInfo
     lateinit var nativeLibraryDirName: String
+    lateinit var loggingFilePath: String
 
     fun loadLaunchInfo(version: String): LaunchInfo {
         val loadedVersions = mutableListOf<VersionJson>()
@@ -116,6 +117,11 @@ class Launcher(
             "-Dminecraft.launcher.version=0.0.0",
             "-Dminecraft.client.jar=${appDataDir.resolve("versions/${info.jar}/${info.jar}.jar")}"
         )
+    }
+
+    fun logJvmArguments(): List<String> {
+        val logging = info.logging["client"] ?: return listOf()
+        return listOf(logging.argument.replace("\${path}", loggingFilePath))
     }
 
     fun launch() {
