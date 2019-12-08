@@ -88,18 +88,13 @@ class Launcher(
         append(appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").path)
     }
 
+    fun launch() {
+        val info = loadLaunchInfo(profile.version)
+
+        println(createClassPath(info))
+    }
+
     companion object {
-        fun launch(profile: Profile) {
-            val appDataDir = File(profile.appDataDirPath)
-
-            val main = Launcher(appDataDir, Platform.current)
-
-            val info = main.loadLaunchInfo(profile.version)
-
-            println(info)
-            println(main.createClassPath(info))
-        }
-
         val moshi = Moshi.Builder()
             .add(DateJsonAdapter)
             .add(KotlinJsonAdapterFactory())
