@@ -13,9 +13,11 @@ import java.io.File
 import java.io.FileNotFoundException
 
 class Launcher(
-    val appDataDir: File,
-    val platform: Platform
+    val profile: Profile
 ) {
+    val appDataDir: File = File(profile.appDataDirPath)
+    val platform: Platform = profile.platform
+
     fun loadLaunchInfo(version: String): LaunchInfo {
         val loadedVersions = mutableListOf<VersionJson>()
         var versionJsonVersion: String? = version
