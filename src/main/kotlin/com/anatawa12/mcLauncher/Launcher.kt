@@ -89,6 +89,10 @@ class Launcher(
 
     //region preparing
 
+    fun prepare() {
+
+    }
+
     //endregion
 
     //region jvm arguments
