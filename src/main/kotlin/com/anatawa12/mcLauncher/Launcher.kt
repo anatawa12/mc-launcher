@@ -127,8 +127,15 @@ class Launcher(
         return true
     }
 
-    fun prepare() {
+    fun prepareLibraries() {
+        val libraries = appDataDir.resolve("libraries")
+        for (artifact in getLoadArtifacts()) {
+            downloadCheck("$libraries/${artifact.path}", artifact.url, artifact.sha1, artifact.size)
+        }
+    }
 
+    fun prepare() {
+        prepareLibraries()
     }
 
     //endregion
