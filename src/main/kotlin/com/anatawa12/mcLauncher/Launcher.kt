@@ -9,8 +9,11 @@ import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
+import java.net.URL
 
 class Launcher(
     val profile: Profile
@@ -88,6 +91,41 @@ class Launcher(
     //endregion
 
     //region preparing
+
+    fun downloadCheck(path: String, url: String, sha1: String?, size: Int?) {
+        val file = appDataDir.resolve(path)
+        var needInstall = false
+        if (file.exists()) {
+            val fileData = file.readBytes()
+            needInstall = !verify(fileData, sha1, size)
+        } else {
+            needInstall = true
+        }
+
+        if (!needInstall) return
+
+        val data = try {
+            URL(url).openStream().readBytes()
+        } catch (e: IOException) {
+            throw KnownErrorException.InvalidLibrary(path, e)
+        }
+
+        if (!verify(data, sha1, size))
+            throw KnownErrorException.InvalidLibrary(path)
+
+        file.parentFile.mkdirs()
+        file.writeBytes(data)
+    }
+
+    fun verify(data: ByteArray, sha1: String?, size: Int?): Boolean {
+        if (size != null)
+            if (data.size != size)
+                return false
+        if (sha1 != null)
+            if (DigestUtils.sha1Hex(data) != sha1)
+                return false
+        return true
+    }
 
     fun prepare() {
 
