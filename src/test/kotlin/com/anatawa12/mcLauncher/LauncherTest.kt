@@ -1,9 +1,9 @@
 package com.anatawa12.mcLauncher
 
-import com.anatawa12.mcLauncher.json.Library
-import com.anatawa12.mcLauncher.json.VersionJson
 import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
+import com.anatawa12.mcLauncher.launchInfo.json.Library
+import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify

@@ -1,10 +1,10 @@
 package com.anatawa12.mcLauncher
 
-import com.anatawa12.mcLauncher.json.DateJsonAdapter
-import com.anatawa12.mcLauncher.json.VersionJson
 import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Natives
+import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
+import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi

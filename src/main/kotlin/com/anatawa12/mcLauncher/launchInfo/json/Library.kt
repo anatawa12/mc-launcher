@@ -1,4 +1,4 @@
-package com.anatawa12.mcLauncher.json
+package com.anatawa12.mcLauncher.launchInfo.json
 
 data class Library(
     val downloads: LibraryDownloads? = null,

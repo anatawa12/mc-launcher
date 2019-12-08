@@ -1,6 +1,6 @@
 package com.anatawa12.mcLauncher.launchInfo
 
-import com.anatawa12.mcLauncher.json.Natives as JsonNatives
+import com.anatawa12.mcLauncher.launchInfo.json.Natives as JsonNatives
 
 data class Natives(
     val linux: String,

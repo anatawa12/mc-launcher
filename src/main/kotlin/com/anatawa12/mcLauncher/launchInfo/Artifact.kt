@@ -1,6 +1,6 @@
 package com.anatawa12.mcLauncher.launchInfo
 
-import com.anatawa12.mcLauncher.json.Artifact as JsonArtifact
+import com.anatawa12.mcLauncher.launchInfo.json.Artifact as JsonArtifact
 
 data class Artifact(
     val path: String,

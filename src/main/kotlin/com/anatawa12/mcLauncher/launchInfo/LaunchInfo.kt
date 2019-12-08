@@ -1,7 +1,7 @@
 package com.anatawa12.mcLauncher.launchInfo
 
-import com.anatawa12.mcLauncher.json.Logging
-import com.anatawa12.mcLauncher.json.VersionJson
+import com.anatawa12.mcLauncher.launchInfo.json.Logging
+import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList

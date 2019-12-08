@@ -1,6 +1,6 @@
 package com.anatawa12.mcLauncher.launchInfo
 
-import com.anatawa12.mcLauncher.json.DownloadFile as JsonDownloadFile
+import com.anatawa12.mcLauncher.launchInfo.json.DownloadFile as JsonDownloadFile
 
 data class DownloadFile(
     val sha1: String,

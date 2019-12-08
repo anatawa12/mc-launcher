@@ -1,9 +1,9 @@
 package com.anatawa12.mcLauncher.launchInfo
 
-import com.anatawa12.mcLauncher.json.Extract
-import com.anatawa12.mcLauncher.json.Rule
+import com.anatawa12.mcLauncher.launchInfo.json.Extract
+import com.anatawa12.mcLauncher.launchInfo.json.Rule
 import kotlinx.collections.immutable.*
-import com.anatawa12.mcLauncher.json.Library as JsonLibrary
+import com.anatawa12.mcLauncher.launchInfo.json.Library as JsonLibrary
 
 data class Library(
     val downloads: ImmutableMap<String, Artifact>,
