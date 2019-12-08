@@ -17,6 +17,7 @@ class Launcher(
 ) {
     val appDataDir: File = File(profile.appDataDirPath)
     val platform: Platform = profile.platform
+    lateinit var info: LaunchInfo
 
     fun loadLaunchInfo(version: String): LaunchInfo {
         val loadedVersions = mutableListOf<VersionJson>()
@@ -63,7 +64,7 @@ class Launcher(
         Platform.Windows -> natives.windows
     }
 
-    fun getLoadArtifacts(info: LaunchInfo): Sequence<Artifact> {
+    fun getLoadArtifacts(): Sequence<Artifact> {
         return info.libraries
             .asSequence()
             .map { inList ->
@@ -80,18 +81,18 @@ class Launcher(
             .flatMap { it.asSequence() }
     }
 
-    fun createClassPath(info: LaunchInfo): String = buildString {
+    fun createClassPath(): String = buildString {
         val librariesDir = appDataDir.resolve("libraries")
-        getLoadArtifacts(info)
+        getLoadArtifacts()
             .map { librariesDir.resolve(it.path) }
             .joinTo(this, separator = File.pathSeparator, postfix = File.pathSeparator)
         append(appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").path)
     }
 
     fun launch() {
-        val info = loadLaunchInfo(profile.version)
+        info = loadLaunchInfo(profile.version)
 
-        println(createClassPath(info))
+        println(createClassPath())
     }
 
     companion object {

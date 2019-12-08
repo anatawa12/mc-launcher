@@ -149,8 +149,8 @@ invalid json data here!
     @Test
     fun getLoadArtifacts() {
         val loadArtifacts = Launcher(profile)
-            .getLoadArtifacts(
-                LaunchInfo.Builder("jsonName").apply {
+            .apply {
+                info = LaunchInfo.Builder("jsonName").apply {
                     addVersionJson(
                         VersionJson(
                             id = "versionJson1",
@@ -188,7 +188,8 @@ invalid json data here!
                         )
                     )
                 }.build()
-            ).toList()
+            }
+            .getLoadArtifacts().toList()
         assertEquals(
             "net/minecraftforge/forge/1.7.10-10.13.4.1614-1.7.10/forge-1.7.10-10.13.4.1614-1.7.10.jar",
             loadArtifacts[0].path
@@ -245,8 +246,11 @@ invalid json data here!
                     )
                 )
             }.build()
+
+        main.info = launchInfo
+
         every {
-            main.getLoadArtifacts(launchInfo)
+            main.getLoadArtifacts()
         } returns sequenceOf(
             Artifact("net/minecraftforge/forge/1.7.10-10.13.4.1614-1.7.10/forge-1.7.10-10.13.4.1614-1.7.10.jar", ""),
             Artifact("com/mojang/netty/1.6/netty-1.6.jar", ""),
@@ -257,9 +261,9 @@ invalid json data here!
         assertEquals(
             "$replaced/libraries/net/minecraftforge/forge/1.7.10-10.13.4.1614-1.7.10/forge-1.7.10-10.13.4.1614-1.7.10.jar:$replaced/libraries/com/mojang/netty/1.6/netty-1.6.jar:" +
                     "$replaced/libraries/net/minecraftforge/forge/1.9.2-14.23.5.2795/forge-1.9.2-14.23.5.2795.jar:$replaced/versions/jsonName/jsonName.jar",
-            main.createClassPath(launchInfo).replace(File.pathSeparatorChar, ':').replace(File.separatorChar, '/')
+            main.createClassPath().replace(File.pathSeparatorChar, ':').replace(File.separatorChar, '/')
         )
 
-        verify(exactly = 1) { main.getLoadArtifacts(launchInfo) }
+        verify(exactly = 1) { main.getLoadArtifacts() }
     }
 }
