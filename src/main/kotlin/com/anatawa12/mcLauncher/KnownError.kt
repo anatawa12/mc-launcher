@@ -13,4 +13,7 @@ sealed class KnownErrorException : Exception {
 
     class VersionJsonNotFile(version: String, cause: Throwable) :
         KnownErrorException("$version.json is not a file.", cause)
+
+    class InvalidLibrary(libraryPath: String, cause: Throwable? = null) :
+        KnownErrorException("$libraryPath is not valid.", cause)
 }
