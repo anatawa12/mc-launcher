@@ -18,6 +18,7 @@ class Launcher(
     val appDataDir: File = File(profile.appDataDirPath)
     val platform: Platform = profile.platform
     lateinit var info: LaunchInfo
+    lateinit var nativeLibraryDirName: String
 
     fun loadLaunchInfo(version: String): LaunchInfo {
         val loadedVersions = mutableListOf<VersionJson>()
@@ -87,6 +88,34 @@ class Launcher(
             .map { librariesDir.resolve(it.path) }
             .joinTo(this, separator = File.pathSeparator, postfix = File.pathSeparator)
         append(appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").path)
+    }
+
+    fun osJvmArgument(): List<String> {
+        when (platform) {
+            Platform.Linux -> TODO()
+            Platform.MacOS -> {
+                return listOf(
+                    "-Xdock:name=Minecraft",
+                    "-Xdock:icon=$appDataDir/assets/objects/99/991b421dfd401f115241601b2b373140a8d78572"
+                )
+            }
+            Platform.Windows -> {
+                return listOf(
+                    "-Dos.name=Windows 10",
+                    "-Dos.version=10.0",
+                    "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump"
+                )
+            }
+        }
+    }
+
+    fun prefixedJvmArguments(): List<String> {
+        return listOf(
+            "-Djava.library.path=$appDataDir/bin/$nativeLibraryDirName",
+            "-Dminecraft.launcher.brand=anatawa12-mc-launcher",
+            "-Dminecraft.launcher.version=0.0.0",
+            "-Dminecraft.client.jar=${appDataDir.resolve("versions/${info.jar}/${info.jar}.jar")}"
+        )
     }
 
     fun launch() {
