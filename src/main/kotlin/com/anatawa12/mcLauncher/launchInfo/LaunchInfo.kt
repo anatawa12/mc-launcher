@@ -7,6 +7,7 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 
+@Suppress("DataClassPrivateConstructor")
 data class LaunchInfo private constructor(
     var id: String,
     val downloads: ImmutableMap<String, DownloadFile>,
