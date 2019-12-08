@@ -21,6 +21,8 @@ class Launcher(
     lateinit var nativeLibraryDirName: String
     lateinit var loggingFilePath: String
 
+    //region loadLaunchInfo
+
     fun loadLaunchInfo(version: String): LaunchInfo {
         val loadedVersions = mutableListOf<VersionJson>()
         var versionJsonVersion: String? = version
@@ -83,6 +85,14 @@ class Launcher(
             .flatMap { it.asSequence() }
     }
 
+    //endregion
+
+    //region preparing
+
+    //endregion
+
+    //region jvm arguments
+
     fun createClassPath(): String = buildString {
         val librariesDir = appDataDir.resolve("libraries")
         getLoadArtifacts()
@@ -123,6 +133,8 @@ class Launcher(
         val logging = info.logging["client"] ?: return listOf()
         return listOf(logging.argument.replace("\${path}", loggingFilePath))
     }
+
+    //endregion
 
     fun launch() {
         info = loadLaunchInfo(profile.version)
