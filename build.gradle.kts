@@ -16,6 +16,7 @@ dependencies {
     implementation("com.squareup.moshi:moshi:1.9.2")
     implementation("com.squareup.moshi:moshi-kotlin:1.9.2")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3")
+    implementation("commons-codec:commons-codec:1.13")
 
     testCompile("junit", "junit", "4.12")
     testImplementation("io.mockk:mockk:1.9.3")
