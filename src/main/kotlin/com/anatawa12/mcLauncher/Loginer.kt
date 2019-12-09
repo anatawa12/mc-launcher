@@ -27,5 +27,6 @@ class Loginer(
         if (password != null)
             auth.setPassword(password)
         auth.logIn()
+        clientToken = auth.authenticationService.clientToken
     }
 }
