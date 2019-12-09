@@ -9,13 +9,14 @@ import kotlinx.collections.immutable.toImmutableMap
 
 @Suppress("DataClassPrivateConstructor")
 data class LaunchInfo private constructor(
-    var id: String,
+    val id: String,
     val downloads: ImmutableMap<String, DownloadFile>,
     val libraries: ImmutableList<ImmutableList<Library>>,
     val logging: ImmutableMap<String, Logging>,
-    var mainClass: String,
-    var minecraftArguments: String,
-    var jar: String
+    val mainClass: String,
+    val minecraftArguments: String,
+    val jar: String,
+    val type: String
 ) {
     class Builder(jsonName: String) {
         var id: String? = null
@@ -25,6 +26,7 @@ data class LaunchInfo private constructor(
         var mainClass: String? = null
         var minecraftArguments: String? = null
         var jar: String = jsonName
+        var type: String? = null
 
         fun addVersionJson(version: VersionJson) {
             version.downloads?.let {
@@ -38,6 +40,7 @@ data class LaunchInfo private constructor(
             mainClass = version.mainClass
             minecraftArguments = version.minecraftArguments
             jar = version.jar ?: jar
+            type = version.type
         }
 
         fun build(): LaunchInfo = LaunchInfo(
@@ -47,7 +50,8 @@ data class LaunchInfo private constructor(
             logging = logging.toImmutableMap(),
             mainClass = requireNotNull(mainClass) { "mainClass is not set" },
             minecraftArguments = requireNotNull(minecraftArguments) { "minecraftArguments is not set" },
-            jar = jar
+            jar = jar,
+            type = requireNotNull(type) { "type is not set" }
         )
     }
 }
