@@ -11,6 +11,9 @@ sealed class KnownErrorException : Exception {
     class InvalidVersionJsonData(version: String, cause: Throwable? = null) :
         KnownErrorException("$version.json has invalid data", cause)
 
+    class InvalidLibraries(id: String, cause: Throwable? = null) :
+        KnownErrorException("library data for '$id' is invalid", cause)
+
     class VersionJsonNotFile(version: String, cause: Throwable) :
         KnownErrorException("$version.json is not a file.", cause)
 

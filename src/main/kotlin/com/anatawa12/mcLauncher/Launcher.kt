@@ -80,7 +80,7 @@ class Launcher(
                     .filter { it.extract == null }
                     .map {
                         it.downloads[classifier(it.natives)]
-                            ?: throw KnownErrorException.InvalidVersionJsonData("downloads invalid")
+                            ?: throw KnownErrorException.InvalidLibraries(it.name)
                     }
                     .groupBy { File(it.path).parentFile.parent }
                     .map { it.value.minBy { File(it.path).parentFile.name }!! }
