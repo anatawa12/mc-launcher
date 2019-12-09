@@ -14,6 +14,8 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URL
+import java.util.zip.ZipInputStream
+import kotlin.random.Random
 
 class Launcher(
     val profile: Profile
@@ -134,8 +136,50 @@ class Launcher(
         }
     }
 
+    fun prepareNativeLibraries() {
+        nativeLibraryDirName = Random.nextLong().run {
+            "%04x-%04x-%04x-%04x".format(
+                ushr(16 * 3).and(0xFFFF).toInt(),
+                ushr(16 * 2).and(0xFFFF).toInt(),
+                ushr(16 * 1).and(0xFFFF).toInt(),
+                ushr(16 * 0).and(0xFFFF).toInt()
+            )
+        }
+        val libraries = appDataDir.resolve("libraries")
+        val extractTo = File("$appDataDir/bin/$nativeLibraryDirName")
+        val artifacts = info.libraries
+            .asSequence()
+            .map { inList ->
+                inList
+                    .asSequence()
+                    .filter { it.extract != null }
+                    .mapNotNull {
+                        it.downloads[classifier(it.natives)]?.let { dl -> it to dl }
+                    }
+                    .groupBy { (_, it) -> File(it.path).parentFile.parent }
+                    .map { it.value.minBy { (_, it) -> File(it.path).parentFile.name }!! }
+            }
+            .flatMap { it.asSequence() }
+
+        for ((library, artifact) in artifacts) {
+            downloadCheck("$libraries/${artifact.path}", artifact.url, artifact.sha1, artifact.size)
+            val extract = library.extract!!
+            ZipInputStream(File("$libraries/${artifact.path}").inputStream()).use { zis ->
+                while (true) {
+                    val entry = zis.nextEntry ?: break
+                    if (extract.exclude.orEmpty().any { entry.name.startsWith(it) }) continue
+                    extractTo.resolve(entry.name)
+                        .apply { parentFile.mkdirs() }
+                        .outputStream()
+                        .use { zis.copyTo(it) }
+                }
+            }
+        }
+    }
+
     fun prepare() {
         prepareLibraries()
+        prepareNativeLibraries()
     }
 
     //endregion
