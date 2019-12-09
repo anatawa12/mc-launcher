@@ -6,8 +6,8 @@ import com.anatawa12.mcLauncher.launchInfo.Natives
 import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import com.google.gson.GsonBuilder
+import com.mojang.authlib.UserAuthentication
 import com.mojang.authlib.properties.PropertyMap
-import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
@@ -29,7 +29,7 @@ class Launcher(
     lateinit var info: LaunchInfo
     lateinit var nativeLibraryDirName: String
     lateinit var loggingFilePath: String
-    lateinit var auth: YggdrasilUserAuthentication
+    lateinit var auth: UserAuthentication
 
     //region loadLaunchInfo
 
