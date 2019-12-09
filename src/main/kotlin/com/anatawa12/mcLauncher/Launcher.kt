@@ -177,9 +177,16 @@ class Launcher(
         }
     }
 
+    fun prepareLog() {
+        val logging = info.logging["client"] ?: return
+        loggingFilePath = "$appDataDir/log_configs/${logging.file.id}"
+        downloadCheck(loggingFilePath, logging.file.url, logging.file.sha1, logging.file.size)
+    }
+
     fun prepare() {
         prepareLibraries()
         prepareNativeLibraries()
+        prepareLog()
     }
 
     //endregion
