@@ -34,7 +34,7 @@ data class LaunchInfo private constructor(
             id = version.id
 
             libraries.add(0, version.libraries.map { Library(it) }.toImmutableList())
-            logging += logging
+            logging += version.logging.orEmpty()
             mainClass = version.mainClass
             minecraftArguments = version.minecraftArguments
             jar = version.jar ?: jar
