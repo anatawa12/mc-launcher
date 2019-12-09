@@ -6,7 +6,6 @@ import com.anatawa12.mcLauncher.launchInfo.Natives
 import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import com.google.gson.GsonBuilder
-import com.mojang.authlib.UserAuthentication
 import com.mojang.authlib.properties.PropertyMap
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
@@ -29,7 +28,7 @@ class Launcher(
     lateinit var info: LaunchInfo
     lateinit var nativeLibraryDirName: String
     lateinit var loggingFilePath: String
-    lateinit var auth: UserAuthentication
+    lateinit var loginer: Loginer
 
     //region loadLaunchInfo
 
@@ -189,6 +188,7 @@ class Launcher(
     }
 
     fun prepare() {
+        loginer.login()
         prepareLibraries()
         prepareNativeLibraries()
         prepareLog()
@@ -240,13 +240,15 @@ class Launcher(
     }
 
     fun minecraftArguments(): List<String> {
+        val auth = loginer.auth
+        val selectedProfile = auth.selectedProfile
         val map = mapOf(
-            "auth_player_name" to auth.selectedProfile.name,
+            "auth_player_name" to selectedProfile.name,
             "version_name" to info.id,
             "game_directory" to profile.gameDirPath,
             "assets_root" to "$appDataDir/assets",
             "assets_index_name" to info.id,
-            "auth_uuid" to auth.selectedProfile.id.toString().replace("-", ""),
+            "auth_uuid" to selectedProfile.id.toString().replace("-", ""),
             "auth_access_token" to auth.authenticatedToken,
             "user_properties" to GsonBuilder().registerTypeAdapter(
                 PropertyMap::class.java,
