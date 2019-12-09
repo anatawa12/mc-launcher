@@ -5,6 +5,9 @@ import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Natives
 import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
+import com.google.gson.GsonBuilder
+import com.mojang.authlib.properties.PropertyMap
+import com.mojang.authlib.yggdrasil.YggdrasilUserAuthentication
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
@@ -16,6 +19,7 @@ import java.io.IOException
 import java.net.URL
 import java.util.zip.ZipInputStream
 import kotlin.random.Random
+import kotlin.system.exitProcess
 
 class Launcher(
     val profile: Profile
@@ -25,6 +29,7 @@ class Launcher(
     lateinit var info: LaunchInfo
     lateinit var nativeLibraryDirName: String
     lateinit var loggingFilePath: String
+    lateinit var auth: YggdrasilUserAuthentication
 
     //region loadLaunchInfo
 
@@ -234,6 +239,26 @@ class Launcher(
         return listOf(logging.argument.replace("\${path}", loggingFilePath))
     }
 
+    fun minecraftArguments(): List<String> {
+        val map = mapOf(
+            "auth_player_name" to auth.selectedProfile.name,
+            "version_name" to info.id,
+            "game_directory" to profile.gameDirPath,
+            "assets_root" to "$appDataDir/assets",
+            "assets_index_name" to info.id,
+            "auth_uuid" to auth.selectedProfile.id.toString().replace("-", ""),
+            "auth_access_token" to auth.authenticatedToken,
+            "user_properties" to GsonBuilder().registerTypeAdapter(
+                PropertyMap::class.java,
+                OldPropertyMapSerializer()
+            ).create().toJson(auth.userProperties),
+            "user_type" to auth.userType.getName(),
+            "version_type" to info.type
+        )
+
+        return info.minecraftArguments.split(' ').map { it.replace("""\{(.*?)\}""".toRegex(), mapTransformer(map)) }
+    }
+
 
     fun jvmArguments(): List<String> {
         val list = mutableListOf<String>()
@@ -245,6 +270,7 @@ class Launcher(
         list += profile.jvmArguments
         list += logJvmArguments()
         list += info.mainClass
+        list += minecraftArguments()
 
         return list
     }
@@ -257,6 +283,14 @@ class Launcher(
         prepare()
 
         println(jvmArguments())
+        println("${System.getProperty("java.home")}/bin/java")
+        val builder = ProcessBuilder()
+        builder.command(mutableListOf<String>().apply {
+            this += "${System.getProperty("java.home")}/bin/java"
+            this += jvmArguments()
+        })
+        builder.inheritIO()
+        exitProcess(builder.start().waitFor())
     }
 
     companion object {
@@ -266,5 +300,9 @@ class Launcher(
             .build()
 
         val versionJsonAdapter = moshi.adapter(VersionJson::class.java)
+
+        fun mapTransformer(map: Map<String, CharSequence>): (MatchResult) -> CharSequence = { result ->
+            map[result.groupValues[1]] ?: error("unknown: ${result.groupValues[1]}")
+        }
     }
 }
