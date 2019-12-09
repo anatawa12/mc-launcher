@@ -227,12 +227,29 @@ class Launcher(
         return listOf(logging.argument.replace("\${path}", loggingFilePath))
     }
 
+
+    fun jvmArguments(): List<String> {
+        val list = mutableListOf<String>()
+
+        list += osJvmArgument()
+        list += prefixedJvmArguments()
+        list += "-cp"
+        list += createClassPath()
+        list += profile.jvmArguments
+        list += logJvmArguments()
+        list += info.mainClass
+
+        return list
+    }
+
     //endregion
 
     fun launch() {
         info = loadLaunchInfo(profile.version)
 
-        println(createClassPath())
+        prepare()
+
+        println(jvmArguments())
     }
 
     companion object {
