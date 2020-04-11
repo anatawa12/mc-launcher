@@ -2,8 +2,11 @@ package com.anatawa12.mcLauncher
 
 import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
+import com.anatawa12.mcLauncher.launchInfo.Library
 import com.anatawa12.mcLauncher.launchInfo.Natives
 import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
+import com.anatawa12.mcLauncher.launchInfo.json.RuleAction
+import com.anatawa12.mcLauncher.launchInfo.json.RuleOS
 import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import com.google.gson.GsonBuilder
 import com.mojang.authlib.properties.PropertyMap
@@ -77,12 +80,42 @@ class Launcher(
         Platform.OperatingSystem.Windows -> natives.windows
     }
 
+    private fun isCurrentOs(os: RuleOS?): Boolean {
+        if (os == null) return true
+        when (os.name) {
+            "osx" -> if (platform.os != Platform.OperatingSystem.MacOS) return false
+            "windows" -> if (platform.os != Platform.OperatingSystem.MacOS) return false
+        }
+        if (os.version != null) {
+            if (!os.version.toRegex().matches(platform.version)) return false
+        }
+        when (os.arch) {
+            "x86" -> if (platform.arch != Platform.Architecture.X86) return false
+        }
+        return true
+    }
+
+    private fun Sequence<Library>.filterWithRule(): Sequence<Library> = filter {
+        if (it.rules.isEmpty()) return@filter true
+        var allow = false
+        for (rule in it.rules) {
+            if (isCurrentOs(rule.os)) {
+                when (rule.action) {
+                    RuleAction.allow -> allow = true
+                    RuleAction.disallow -> allow = false
+                }
+            }
+        }
+        return@filter allow
+    }
+
     fun getLoadArtifacts(): Sequence<Artifact> {
         return info.libraries
             .asSequence()
             .map { inList ->
                 inList
                     .asSequence()
+                    .filterWithRule()
                     .filter { it.extract == null }
                     .map {
                         it.downloads[classifier(it.natives)]
@@ -159,6 +192,7 @@ class Launcher(
             .map { inList ->
                 inList
                     .asSequence()
+                    .filterWithRule()
                     .filter { it.extract != null }
                     .mapNotNull {
                         it.downloads[classifier(it.natives)]?.let { dl -> it to dl }
