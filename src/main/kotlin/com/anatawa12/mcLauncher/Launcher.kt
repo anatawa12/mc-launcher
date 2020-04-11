@@ -258,7 +258,7 @@ class Launcher(
             "version_type" to info.type
         )
 
-        return info.minecraftArguments.split(' ').map { it.replace("""\{(.*?)\}""".toRegex(), mapTransformer(map)) }
+        return info.minecraftArguments.split(' ').map { it.replace("""\$\{(.*?)\}""".toRegex(), mapTransformer(map)) }
     }
 
 
