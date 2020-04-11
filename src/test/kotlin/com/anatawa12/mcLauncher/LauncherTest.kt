@@ -111,7 +111,7 @@ invalid json data here!
         profile = Profile(
             version = "null",
             gameDirPath = appDataDir.path,
-            platform = Platform(Platform.OperatingSystem.MacOS, Platform.Architecture.ARM64),
+            platform = Platform(Platform.OperatingSystem.MacOS, Platform.Architecture.ARM64, "10.15.3"),
             appDataDirPath = appDataDir.path
         )
     }

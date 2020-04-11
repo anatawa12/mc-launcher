@@ -1,6 +1,6 @@
 package com.anatawa12.mcLauncher
 
-data class Platform(val os: OperatingSystem, val arch: Architecture) {
+data class Platform(val os: OperatingSystem, val arch: Architecture, val version: String) {
     enum class OperatingSystem {
         Linux {
             override fun getAppDataDirPath(): String {
@@ -69,7 +69,7 @@ data class Platform(val os: OperatingSystem, val arch: Architecture) {
     }
 
     companion object {
-        val current = Platform(OperatingSystem.current, Architecture.current)
+        val current = Platform(OperatingSystem.current, Architecture.current, System.getProperty("os.version"))
     }
 }
 
