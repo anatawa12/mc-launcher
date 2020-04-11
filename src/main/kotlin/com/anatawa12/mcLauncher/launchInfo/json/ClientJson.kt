@@ -2,7 +2,7 @@ package com.anatawa12.mcLauncher.launchInfo.json
 
 import java.util.*
 
-data class VersionJson(
+data class ClientJson(
     val assetIndex: AssetIndex? = null,
     val assets: String? = null,
     val downloads: Map<String, DownloadFile>? = null,

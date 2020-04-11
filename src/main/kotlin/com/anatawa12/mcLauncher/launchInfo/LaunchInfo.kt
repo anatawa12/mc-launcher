@@ -1,7 +1,7 @@
 package com.anatawa12.mcLauncher.launchInfo
 
+import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
 import com.anatawa12.mcLauncher.launchInfo.json.Logging
-import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
@@ -28,19 +28,19 @@ data class LaunchInfo private constructor(
         var jar: String = jsonName
         var type: String? = null
 
-        fun addVersionJson(version: VersionJson) {
-            version.downloads?.let {
+        fun addVersionJson(client: ClientJson) {
+            client.downloads?.let {
                 downloads += it.mapValues { DownloadFile(it.value) }
             }
 
-            id = version.id
+            id = client.id
 
-            libraries.add(0, version.libraries.map { Library(it) }.toImmutableList())
-            logging += version.logging.orEmpty()
-            mainClass = version.mainClass
-            minecraftArguments = version.minecraftArguments
-            jar = version.jar ?: jar
-            type = version.type
+            libraries.add(0, client.libraries.map { Library(it) }.toImmutableList())
+            logging += client.logging.orEmpty()
+            mainClass = client.mainClass
+            minecraftArguments = client.minecraftArguments
+            jar = client.jar ?: jar
+            type = client.type
         }
 
         fun build(): LaunchInfo = LaunchInfo(

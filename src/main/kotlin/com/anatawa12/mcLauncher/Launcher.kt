@@ -4,10 +4,10 @@ import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Library
 import com.anatawa12.mcLauncher.launchInfo.Natives
+import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
 import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.launchInfo.json.RuleAction
 import com.anatawa12.mcLauncher.launchInfo.json.RuleOS
-import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import com.google.gson.GsonBuilder
 import com.mojang.authlib.properties.PropertyMap
 import com.squareup.moshi.JsonDataException
@@ -36,7 +36,7 @@ class Launcher(
     //region loadLaunchInfo
 
     fun loadLaunchInfo(version: String): LaunchInfo {
-        val loadedVersions = mutableListOf<VersionJson>()
+        val loadedVersions = mutableListOf<ClientJson>()
         var versionJsonVersion: String? = version
         while (versionJsonVersion != null) {
             if (loadedVersions.any { it.id == versionJsonVersion })
@@ -55,7 +55,7 @@ class Launcher(
         return builder.build()
     }
 
-    fun loadVersionJson(version: String): VersionJson {
+    fun loadVersionJson(version: String): ClientJson {
         val jsonFile = appDataDir.resolve("versions").resolve(version).resolve("$version.json")
 
         val jsonText = try {
@@ -338,7 +338,7 @@ class Launcher(
             .add(KotlinJsonAdapterFactory())
             .build()
 
-        val versionJsonAdapter = moshi.adapter(VersionJson::class.java)
+        val versionJsonAdapter = moshi.adapter(ClientJson::class.java)
 
         fun mapTransformer(map: Map<String, CharSequence>): (MatchResult) -> CharSequence = { result ->
             map[result.groupValues[1]] ?: error("unknown: ${result.groupValues[1]}")

@@ -14,7 +14,7 @@ fun main() {
         .add(DateJsonAdapter)
         .add(KotlinJsonAdapterFactory())
         .build()
-        .adapter(VersionJson::class.java)
+        .adapter(ClientJson::class.java)
 
     val info = adapter.fromJson(File("./$fileName.json").readText())
     val buffer = Buffer()
