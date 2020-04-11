@@ -199,7 +199,7 @@ class Launcher(
                 inList
                     .asSequence()
                     .filterWithRule()
-                    .filter { it.extract != null }
+                    .filter { it.natives.linux != "" || it.natives.osx != "" || it.natives.windows != "" }
                     .mapNotNull {
                         it.downloads[classifier(it.natives)]?.let { dl -> it to dl }
                     }
@@ -210,11 +210,12 @@ class Launcher(
 
         for ((library, artifact) in artifacts) {
             downloadCheck("$libraries/${artifact.path}", artifact.url, artifact.sha1, artifact.size)
-            val extract = library.extract!!
+            val extract = library.extract
             ZipInputStream(File("$libraries/${artifact.path}").inputStream()).use { zis ->
                 while (true) {
                     val entry = zis.nextEntry ?: break
-                    if (extract.exclude.orEmpty().any { entry.name.startsWith(it) }) continue
+                    if (entry.isDirectory) continue
+                    if (extract?.exclude.orEmpty().any { entry.name.startsWith(it) }) continue
                     extractTo.resolve(entry.name)
                         .apply { parentFile.mkdirs() }
                         .outputStream()
