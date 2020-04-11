@@ -24,7 +24,7 @@ class Launcher(
     val profile: Profile
 ) {
     val appDataDir: File = File(profile.appDataDirPath)
-    val operatingSystem = profile.platform.os
+    val platform = profile.platform
     lateinit var info: LaunchInfo
     lateinit var nativeLibraryDirName: String
     lateinit var loggingFilePath: String
@@ -71,7 +71,7 @@ class Launcher(
     }
 
     // TODO Support ${arch}
-    private fun classifier(natives: Natives): String = when (operatingSystem) {
+    private fun classifier(natives: Natives): String = when (platform.os) {
         Platform.OperatingSystem.Linux -> natives.linux
         Platform.OperatingSystem.MacOS -> natives.osx
         Platform.OperatingSystem.Windows -> natives.windows
@@ -210,7 +210,7 @@ class Launcher(
     }
 
     fun osJvmArgument(): List<String> {
-        when (operatingSystem) {
+        when (platform.os) {
             Platform.OperatingSystem.Linux -> TODO()
             Platform.OperatingSystem.MacOS -> {
                 return listOf(
