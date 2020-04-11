@@ -208,3 +208,5 @@ gradle-app.setting
 # for test jsons
 1.7.10*.json
 1.7.10*.diff
+/1.*.json
+/1.*.diff
