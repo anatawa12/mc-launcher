@@ -5,9 +5,9 @@ import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Library
 import com.anatawa12.mcLauncher.launchInfo.Natives
 import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
-import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
 import com.anatawa12.mcLauncher.launchInfo.json.Rule
 import com.anatawa12.mcLauncher.launchInfo.json.RuleAction
+import com.anatawa12.mcLauncher.launchInfo.json.adapters.DateJsonAdapter
 import com.google.gson.GsonBuilder
 import com.mojang.authlib.properties.PropertyMap
 import com.squareup.moshi.JsonDataException
