@@ -24,7 +24,7 @@ class Launcher(
     val profile: Profile
 ) {
     val appDataDir: File = File(profile.appDataDirPath)
-    val operatingSystem: OperatingSystem = profile.operatingSystem
+    val operatingSystem = profile.platform.os
     lateinit var info: LaunchInfo
     lateinit var nativeLibraryDirName: String
     lateinit var loggingFilePath: String
@@ -72,9 +72,9 @@ class Launcher(
 
     // TODO Support ${arch}
     private fun classifier(natives: Natives): String = when (operatingSystem) {
-        OperatingSystem.Linux -> natives.linux
-        OperatingSystem.MacOS -> natives.osx
-        OperatingSystem.Windows -> natives.windows
+        Platform.OperatingSystem.Linux -> natives.linux
+        Platform.OperatingSystem.MacOS -> natives.osx
+        Platform.OperatingSystem.Windows -> natives.windows
     }
 
     fun getLoadArtifacts(): Sequence<Artifact> {
@@ -211,14 +211,14 @@ class Launcher(
 
     fun osJvmArgument(): List<String> {
         when (operatingSystem) {
-            OperatingSystem.Linux -> TODO()
-            OperatingSystem.MacOS -> {
+            Platform.OperatingSystem.Linux -> TODO()
+            Platform.OperatingSystem.MacOS -> {
                 return listOf(
                     "-Xdock:name=Minecraft",
                     "-Xdock:icon=$appDataDir/assets/objects/99/991b421dfd401f115241601b2b373140a8d78572"
                 )
             }
-            OperatingSystem.Windows -> {
+            Platform.OperatingSystem.Windows -> {
                 return listOf(
                     "-Dos.name=Windows 10",
                     "-Dos.version=10.0",
