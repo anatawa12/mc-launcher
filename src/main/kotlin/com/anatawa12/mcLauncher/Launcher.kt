@@ -8,6 +8,7 @@ import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
 import com.anatawa12.mcLauncher.launchInfo.json.Rule
 import com.anatawa12.mcLauncher.launchInfo.json.RuleAction
 import com.anatawa12.mcLauncher.launchInfo.json.adapters.DateJsonAdapter
+import com.anatawa12.mcLauncher.launchInfo.json.adapters.NonArrayIfSingleAdapterFactory
 import com.google.gson.GsonBuilder
 import com.mojang.authlib.properties.PropertyMap
 import com.squareup.moshi.JsonDataException
@@ -339,6 +340,7 @@ class Launcher(
     companion object {
         val moshi = Moshi.Builder()
             .add(DateJsonAdapter)
+            .add(NonArrayIfSingleAdapterFactory)
             .add(KotlinJsonAdapterFactory())
             .build()
 
