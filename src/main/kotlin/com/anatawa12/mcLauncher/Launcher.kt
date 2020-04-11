@@ -4,6 +4,7 @@ import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Library
 import com.anatawa12.mcLauncher.launchInfo.Natives
+import com.anatawa12.mcLauncher.launchInfo.json.ArgumentElement
 import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
 import com.anatawa12.mcLauncher.launchInfo.json.Rule
 import com.anatawa12.mcLauncher.launchInfo.json.RuleAction
@@ -341,6 +342,7 @@ class Launcher(
         val moshi = Moshi.Builder()
             .add(DateJsonAdapter)
             .add(NonArrayIfSingleAdapterFactory)
+            .add(ArgumentElement.AdapterFactory)
             .add(KotlinJsonAdapterFactory())
             .build()
 
