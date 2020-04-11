@@ -86,7 +86,10 @@ class Launcher(
                     .filter { it.extract == null }
                     .map {
                         it.downloads[classifier(it.natives)]
-                            ?: throw KnownErrorException.InvalidLibraries(it.name)
+                            ?: throw KnownErrorException.InvalidLibraries(
+                                it.name,
+                                "download for this platform not found."
+                            )
                     }
                     .groupBy { File(it.path).parentFile.parent }
                     .map { it.value.minBy { File(it.path).parentFile.name }!! }
@@ -113,11 +116,11 @@ class Launcher(
         val data = try {
             URL(url).openStream().readBytes()
         } catch (e: IOException) {
-            throw KnownErrorException.InvalidLibrary(path, e)
+            throw KnownErrorException.InvalidLibrary(path, "can't get library", e)
         }
 
         if (!verify(data, sha1, size))
-            throw KnownErrorException.InvalidLibrary(path)
+            throw KnownErrorException.InvalidLibrary(path, "verify failed.")
 
         file.parentFile.mkdirs()
         file.writeBytes(data)
