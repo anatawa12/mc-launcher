@@ -1,6 +1,6 @@
 package com.anatawa12.mcLauncher
 
-enum class Platform {
+enum class OperatingSystem {
     Linux {
         override fun getAppDataDirPath(): String {
             return "${System.getProperty("user.home")}/.minecraft"
@@ -41,7 +41,7 @@ enum class Platform {
     abstract fun getAppDataDirPath(): String
 
     companion object {
-        val current: Platform
+        val current: OperatingSystem
 
         init {
             val osName = System.getProperty("os.name")
