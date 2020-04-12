@@ -4,10 +4,7 @@ import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
 import com.anatawa12.mcLauncher.launchInfo.Library
 import com.anatawa12.mcLauncher.launchInfo.Natives
-import com.anatawa12.mcLauncher.launchInfo.json.ArgumentElement
-import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
-import com.anatawa12.mcLauncher.launchInfo.json.Rule
-import com.anatawa12.mcLauncher.launchInfo.json.RuleAction
+import com.anatawa12.mcLauncher.launchInfo.json.*
 import com.anatawa12.mcLauncher.launchInfo.json.adapters.DateJsonAdapter
 import com.anatawa12.mcLauncher.launchInfo.json.adapters.NonArrayIfSingleAdapterFactory
 import com.google.gson.GsonBuilder
@@ -313,9 +310,15 @@ class Launcher(
             "classpath" to createClassPath()
         )
 
-        return info.minecraftArguments.split(' ').map { it.replace("""\$\{(.*?)\}""".toRegex(), mapTransformer(map)) }
+        return info.minecraftArguments
+            .flatMap { processArgumentElement(it) }
+            .map { it.replace("""\$\{(.*?)\}""".toRegex(), mapTransformer(map)) }
     }
 
+    fun processArgumentElement(element: ArgumentElement) = when (element) {
+        is StringArgumentElement -> listOf(element.argument)
+        is ConditionalArgumentElement -> if (checkRules(element.rules)) element.value else emptyList()
+    }
 
     fun jvmArguments(): List<String> {
         val list = mutableListOf<String>()

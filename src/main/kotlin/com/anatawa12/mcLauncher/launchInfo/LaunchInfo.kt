@@ -1,7 +1,9 @@
 package com.anatawa12.mcLauncher.launchInfo
 
+import com.anatawa12.mcLauncher.launchInfo.json.ArgumentElement
 import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
 import com.anatawa12.mcLauncher.launchInfo.json.Logging
+import com.anatawa12.mcLauncher.launchInfo.json.StringArgumentElement
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
@@ -14,7 +16,8 @@ data class LaunchInfo private constructor(
     val libraries: ImmutableList<ImmutableList<Library>>,
     val logging: ImmutableMap<String, Logging>,
     val mainClass: String,
-    val minecraftArguments: String,
+    val minecraftArguments: ImmutableList<ArgumentElement>,
+    val jvmArguments: ImmutableList<ArgumentElement>? = null,
     val jar: String,
     val type: String
 ) {
@@ -24,7 +27,8 @@ data class LaunchInfo private constructor(
         val libraries: MutableList<ImmutableList<Library>> = mutableListOf()
         val logging: MutableMap<String, Logging> = mutableMapOf()
         var mainClass: String? = null
-        var minecraftArguments: String? = null
+        var minecraftArguments: ImmutableList<ArgumentElement>? = null
+        var jvmArguments: ImmutableList<ArgumentElement>? = null
         var jar: String = jsonName
         var type: String? = null
 
@@ -38,7 +42,10 @@ data class LaunchInfo private constructor(
             libraries.add(0, client.libraries.map { Library(it) }.toImmutableList())
             logging += client.logging.orEmpty()
             mainClass = client.mainClass
-            minecraftArguments = client.minecraftArguments
+            minecraftArguments = client.arguments?.game?.toImmutableList()
+                ?: client.minecraftArguments?.split(' ')?.map { StringArgumentElement(it) }?.toImmutableList()
+                        ?: minecraftArguments
+            jvmArguments = client.arguments?.jvm?.toImmutableList() ?: jvmArguments
             jar = client.jar ?: jar
             type = client.type
         }
@@ -49,7 +56,8 @@ data class LaunchInfo private constructor(
             libraries = libraries.toImmutableList(),
             logging = logging.toImmutableMap(),
             mainClass = requireNotNull(mainClass) { "mainClass is not set" },
-            minecraftArguments = requireNotNull(minecraftArguments) { "minecraftArguments is not set" },
+            minecraftArguments = requireNotNull(minecraftArguments) { "arguments or minecraftArguments is not set" },
+            jvmArguments = jvmArguments,
             jar = jar,
             type = requireNotNull(type) { "type is not set" }
         )
