@@ -271,7 +271,7 @@ class Launcher(
             "version_name" to info.id,
             "game_directory" to profile.gameDirPath,
             "assets_root" to "$appDataDir/assets",
-            "assets_index_name" to info.id,
+            "assets_index_name" to info.assets,
             "auth_uuid" to selectedProfile.id.toString().replace("-", ""),
             "auth_access_token" to auth.authenticatedToken,
             "user_properties" to GsonBuilder().registerTypeAdapter(

@@ -12,6 +12,7 @@ import kotlinx.collections.immutable.toImmutableMap
 @Suppress("DataClassPrivateConstructor")
 data class LaunchInfo private constructor(
     val id: String,
+    val assets: String,
     val downloads: ImmutableMap<String, DownloadFile>,
     val libraries: ImmutableList<ImmutableList<Library>>,
     val logging: ImmutableMap<String, Logging>,
@@ -23,6 +24,7 @@ data class LaunchInfo private constructor(
 ) {
     class Builder(jsonName: String) {
         var id: String? = null
+        var assets: String? = null
         val downloads: MutableMap<String, DownloadFile> = mutableMapOf()
         val libraries: MutableList<ImmutableList<Library>> = mutableListOf()
         val logging: MutableMap<String, Logging> = mutableMapOf()
@@ -38,6 +40,7 @@ data class LaunchInfo private constructor(
             }
 
             id = client.id
+            assets = client.assets
 
             libraries.add(0, client.libraries.map { Library(it) }.toImmutableList())
             logging += client.logging.orEmpty()
@@ -52,6 +55,7 @@ data class LaunchInfo private constructor(
 
         fun build(): LaunchInfo = LaunchInfo(
             id = requireNotNull(id) { "id is not set" },
+            assets = requireNotNull(assets) { "assets is not set" },
             downloads = downloads.toImmutableMap(),
             libraries = libraries.toImmutableList(),
             logging = logging.toImmutableMap(),
