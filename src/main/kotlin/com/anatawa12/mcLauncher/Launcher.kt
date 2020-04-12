@@ -93,6 +93,13 @@ class Launcher(
                 "x86" -> if (platform.arch != Platform.Architecture.X86) return false
             }
         }
+        if (rule.features != null) {
+            // TODO: use real value
+            if (rule.features.has_custom_resolution != false)
+                return false
+            if (rule.features.is_demo_user != false)
+                return false
+        }
         return true
     }
 
@@ -304,7 +311,7 @@ class Launcher(
             // slince 1.13(launcher v21)
             "resolution_width" to null,
             "resolution_height" to null,
-            "natives_directory" to nativeLibraryDirName,
+            "natives_directory" to "$appDataDir/bin/$nativeLibraryDirName",
             "launcher_name" to launcherBrand,
             "launcher_version" to launcherVersion,
             "classpath" to createClassPath()
