@@ -269,11 +269,14 @@ class Launcher(
         }
     }
 
+    val launcherBrand = "anatawa12-mc-launcher"
+    val launcherVersion = "0.0.0"
+
     fun prefixedJvmArguments(): List<String> {
         return listOf(
             "-Djava.library.path=$appDataDir/bin/$nativeLibraryDirName",
-            "-Dminecraft.launcher.brand=anatawa12-mc-launcher",
-            "-Dminecraft.launcher.version=0.0.0",
+            "-Dminecraft.launcher.brand=$launcherBrand",
+            "-Dminecraft.launcher.version=$launcherVersion",
             "-Dminecraft.client.jar=${appDataDir.resolve("versions/${info.jar}/${info.jar}.jar")}"
         )
     }
@@ -299,7 +302,15 @@ class Launcher(
                 OldPropertyMapSerializer()
             ).create().toJson(auth.userProperties),
             "user_type" to auth.userType.getName(),
-            "version_type" to info.type
+            "version_type" to info.type,
+
+            // slince 1.13(launcher v21)
+            "resolution_width" to null,
+            "resolution_height" to null,
+            "natives_directory" to nativeLibraryDirName,
+            "launcher_name" to launcherBrand,
+            "launcher_version" to launcherVersion,
+            "classpath" to createClassPath()
         )
 
         return info.minecraftArguments.split(' ').map { it.replace("""\$\{(.*?)\}""".toRegex(), mapTransformer(map)) }
@@ -349,7 +360,7 @@ class Launcher(
 
         val versionJsonAdapter = moshi.adapter(ClientJson::class.java)
 
-        fun mapTransformer(map: Map<String, CharSequence>): (MatchResult) -> CharSequence = { result ->
+        fun mapTransformer(map: Map<String, CharSequence?>): (MatchResult) -> CharSequence = { result ->
             map[result.groupValues[1]] ?: error("unknown: ${result.groupValues[1]}")
         }
     }
