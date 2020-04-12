@@ -13,6 +13,7 @@ import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.collections.immutable.persistentListOf
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
 import java.io.FileNotFoundException
@@ -254,43 +255,15 @@ class Launcher(
         append(appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").path)
     }
 
-    fun osJvmArgument(): List<String> {
-        when (platform.os) {
-            Platform.OperatingSystem.Linux -> TODO()
-            Platform.OperatingSystem.MacOS -> {
-                return listOf(
-                    "-Xdock:name=Minecraft",
-                    "-Xdock:icon=$appDataDir/assets/objects/99/991b421dfd401f115241601b2b373140a8d78572"
-                )
-            }
-            Platform.OperatingSystem.Windows -> {
-                return listOf(
-                    "-Dos.name=Windows 10",
-                    "-Dos.version=10.0",
-                    "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump"
-                )
-            }
-        }
-    }
-
     val launcherBrand = "anatawa12-mc-launcher"
     val launcherVersion = "0.0.0"
-
-    fun prefixedJvmArguments(): List<String> {
-        return listOf(
-            "-Djava.library.path=$appDataDir/bin/$nativeLibraryDirName",
-            "-Dminecraft.launcher.brand=$launcherBrand",
-            "-Dminecraft.launcher.version=$launcherVersion",
-            "-Dminecraft.client.jar=${appDataDir.resolve("versions/${info.jar}/${info.jar}.jar")}"
-        )
-    }
 
     fun logJvmArguments(): List<String> {
         val logging = info.logging["client"] ?: return listOf()
         return listOf(logging.argument.replace("\${path}", loggingFilePath))
     }
 
-    fun minecraftArguments(): List<String> {
+    fun processArguments(arguments: List<ArgumentElement>): List<String> {
         val auth = loginer.auth
         val selectedProfile = auth.selectedProfile
         val map = mapOf(
@@ -314,10 +287,13 @@ class Launcher(
             "natives_directory" to "$appDataDir/bin/$nativeLibraryDirName",
             "launcher_name" to launcherBrand,
             "launcher_version" to launcherVersion,
-            "classpath" to createClassPath()
+            "classpath" to createClassPath(),
+
+            // internal use
+            "anatawa12_client_jar" to appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").toString()
         )
 
-        return info.minecraftArguments
+        return arguments
             .flatMap { processArgumentElement(it) }
             .map { it.replace("""\$\{(.*?)\}""".toRegex(), mapTransformer(map)) }
     }
@@ -330,14 +306,11 @@ class Launcher(
     fun jvmArguments(): List<String> {
         val list = mutableListOf<String>()
 
-        list += osJvmArgument()
-        list += prefixedJvmArguments()
-        list += "-cp"
-        list += createClassPath()
+        list += processArguments(info.jvmArguments ?: untilV21JvmArguments)
         list += profile.jvmArguments
         list += logJvmArguments()
         list += info.mainClass
-        list += minecraftArguments()
+        list += processArguments(info.minecraftArguments)
 
         return list
     }
@@ -373,5 +346,69 @@ class Launcher(
         fun mapTransformer(map: Map<String, CharSequence?>): (MatchResult) -> CharSequence = { result ->
             map[result.groupValues[1]] ?: error("unknown: ${result.groupValues[1]}")
         }
+
+        val untilV21JvmArguments = persistentListOf(
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            name = "osx"
+                        )
+                    )
+                ),
+                listOf(
+                    "-Xdock:name=Minecraft",
+                    "-Xdock:icon=\${assets_root}/objects/99/991b421dfd401f115241601b2b373140a8d78572"
+                )
+            ),
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            name = "windows",
+                            version = """^10\\."""
+                        )
+                    )
+                ),
+                listOf(
+                    "-Dos.name=Windows 10",
+                    "-Dos.version=10.0"
+                )
+            ),
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            name = "windows"
+                        )
+                    )
+                ),
+                listOf(
+                    "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump"
+                )
+            ),
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            arch = "x86"
+                        )
+                    )
+                ),
+                listOf(
+                    "-Xss1M"
+                )
+            ),
+            StringArgumentElement("-Djava.library.path=\${natives_directory}"),
+            StringArgumentElement("-Dminecraft.launcher.brand=\${launcher_name}"),
+            StringArgumentElement("-Dminecraft.launcher.version=\${launcher_version}"),
+            StringArgumentElement("-Dminecraft.client.jar=\${anatawa12_client_jar}"),
+            StringArgumentElement("-cp"),
+            StringArgumentElement("-\${classpath}")
+        )
     }
 }
