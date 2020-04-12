@@ -5,5 +5,5 @@ data class Profile(
     val gameDirPath: String,
     val jvmArguments: List<String> = listOf(),
     val platform: Platform = Platform.current,
-    val appDataDirPath: String = platform.getAppDataDirPath()
+    val appDataDirPath: String = platform.os.getAppDataDirPath()
 )

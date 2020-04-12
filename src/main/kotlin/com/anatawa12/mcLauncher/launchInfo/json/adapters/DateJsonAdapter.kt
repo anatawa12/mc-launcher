@@ -1,4 +1,4 @@
-package com.anatawa12.mcLauncher.launchInfo.json
+package com.anatawa12.mcLauncher.launchInfo.json.adapters
 
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonReader

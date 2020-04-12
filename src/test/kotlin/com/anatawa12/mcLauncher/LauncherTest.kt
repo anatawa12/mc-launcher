@@ -2,8 +2,8 @@ package com.anatawa12.mcLauncher
 
 import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
+import com.anatawa12.mcLauncher.launchInfo.json.ClientJson
 import com.anatawa12.mcLauncher.launchInfo.json.Library
-import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.verify
@@ -111,7 +111,7 @@ invalid json data here!
         profile = Profile(
             version = "null",
             gameDirPath = appDataDir.path,
-            platform = Platform.MacOS,
+            platform = Platform(Platform.OperatingSystem.MacOS, Platform.Architecture.ARM64, "10.15.3"),
             appDataDirPath = appDataDir.path
         )
     }
@@ -153,7 +153,7 @@ invalid json data here!
             .apply {
                 info = LaunchInfo.Builder("jsonName").apply {
                     addVersionJson(
-                        VersionJson(
+                        ClientJson(
                             id = "versionJson1",
                             releaseTime = Date(),
                             time = Date(),
@@ -171,7 +171,7 @@ invalid json data here!
                         )
                     )
                     addVersionJson(
-                        VersionJson(
+                        ClientJson(
                             id = "versionJson1",
                             releaseTime = Date(),
                             time = Date(),
@@ -211,7 +211,7 @@ invalid json data here!
         val launchInfo =
             LaunchInfo.Builder("jsonName").apply {
                 addVersionJson(
-                    VersionJson(
+                    ClientJson(
                         id = "versionJson1",
                         releaseTime = Date(),
                         time = Date(),
@@ -229,7 +229,7 @@ invalid json data here!
                     )
                 )
                 addVersionJson(
-                    VersionJson(
+                    ClientJson(
                         id = "versionJson1",
                         releaseTime = Date(),
                         time = Date(),

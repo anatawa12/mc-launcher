@@ -2,7 +2,8 @@ package com.anatawa12.mcLauncher.launchInfo.json
 
 import java.util.*
 
-data class VersionJson(
+data class ClientJson(
+    val arguments: Arguments? = null,
     val assetIndex: AssetIndex? = null,
     val assets: String? = null,
     val downloads: Map<String, DownloadFile>? = null,
@@ -10,7 +11,7 @@ data class VersionJson(
     val libraries: List<Library> = listOf(),
     val logging: Map<String, Logging>? = null,
     val mainClass: String,
-    val minecraftArguments: String,
+    val minecraftArguments: String? = null,
     val minimumLauncherVersion: Int? = null,
     val releaseTime: Date,
     val time: Date,

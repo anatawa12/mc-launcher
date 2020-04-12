@@ -1,22 +1,52 @@
 package com.anatawa12.mcLauncher
 
-enum class Platform {
-    Linux {
-        override fun getAppDataDirPath(): String {
-            return "${System.getProperty("user.home")}/.minecraft"
+data class Platform(val os: OperatingSystem, val arch: Architecture, val version: String) {
+    enum class OperatingSystem {
+        Linux {
+            override fun getAppDataDirPath(): String {
+                return "${System.getProperty("user.home")}/.minecraft"
+            }
+        },
+        MacOS {
+            override fun getAppDataDirPath(): String {
+                return "${System.getProperty("user.home")}/Library/Application Support/minecraft"
+            }
+        },
+        Windows {
+            override fun getAppDataDirPath(): String {
+                return "${System.getenv("APPDATA")}\\.minecraft"
+            }
+        },
+        ;
+
+        abstract fun getAppDataDirPath(): String
+
+        companion object {
+            val current: OperatingSystem
+
+            init {
+                val osName = System.getProperty("os.name")
+                current = when {
+                    osName.startsWith("Windows") -> {
+                        Windows
+                    }
+                    osName.startsWith("Linux")
+                            || osName.startsWith("FreeBSD")
+                            || osName.startsWith("SunOS")
+                            || osName.startsWith("Unix") -> {
+                        Linux
+                    }
+                    osName.startsWith("Mac OS X")
+                            || osName.startsWith("Darwin") -> {
+                        MacOS
+                    }
+                    else -> {
+                        throw LinkageError("Unknown platform: $osName")
+                    }
+                }
+            }
         }
-    },
-    MacOS {
-        override fun getAppDataDirPath(): String {
-            return "${System.getProperty("user.home")}/Library/Application Support/minecraft"
-        }
-    },
-    Windows {
-        override fun getAppDataDirPath(): String {
-            return "${System.getenv("APPDATA")}\\.minecraft"
-        }
-    },
-    ;
+    }
 
     enum class Architecture(val is64Bit: Boolean) {
         X86(false),
@@ -38,31 +68,8 @@ enum class Platform {
         }
     }
 
-    abstract fun getAppDataDirPath(): String
-
     companion object {
-        val current: Platform
-
-        init {
-            val osName = System.getProperty("os.name")
-            current = when {
-                osName.startsWith("Windows") -> {
-                    Windows
-                }
-                osName.startsWith("Linux")
-                        || osName.startsWith("FreeBSD")
-                        || osName.startsWith("SunOS")
-                        || osName.startsWith("Unix") -> {
-                    Linux
-                }
-                osName.startsWith("Mac OS X")
-                        || osName.startsWith("Darwin") -> {
-                    MacOS
-                }
-                else -> {
-                    throw LinkageError("Unknown platform: $osName")
-                }
-            }
-        }
+        val current = Platform(OperatingSystem.current, Architecture.current, System.getProperty("os.version"))
     }
 }
+

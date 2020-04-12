@@ -1,5 +1,6 @@
 package com.anatawa12.mcLauncher.launchInfo.json
 
+import com.anatawa12.mcLauncher.launchInfo.json.adapters.DateJsonAdapter
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -14,7 +15,7 @@ fun main() {
         .add(DateJsonAdapter)
         .add(KotlinJsonAdapterFactory())
         .build()
-        .adapter(VersionJson::class.java)
+        .adapter(ClientJson::class.java)
 
     val info = adapter.fromJson(File("./$fileName.json").readText())
     val buffer = Buffer()

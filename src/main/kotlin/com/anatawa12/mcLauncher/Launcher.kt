@@ -2,15 +2,18 @@ package com.anatawa12.mcLauncher
 
 import com.anatawa12.mcLauncher.launchInfo.Artifact
 import com.anatawa12.mcLauncher.launchInfo.LaunchInfo
+import com.anatawa12.mcLauncher.launchInfo.Library
 import com.anatawa12.mcLauncher.launchInfo.Natives
-import com.anatawa12.mcLauncher.launchInfo.json.DateJsonAdapter
-import com.anatawa12.mcLauncher.launchInfo.json.VersionJson
+import com.anatawa12.mcLauncher.launchInfo.json.*
+import com.anatawa12.mcLauncher.launchInfo.json.adapters.DateJsonAdapter
+import com.anatawa12.mcLauncher.launchInfo.json.adapters.NonArrayIfSingleAdapterFactory
 import com.google.gson.GsonBuilder
 import com.mojang.authlib.properties.PropertyMap
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.collections.immutable.persistentListOf
 import org.apache.commons.codec.digest.DigestUtils
 import java.io.File
 import java.io.FileNotFoundException
@@ -24,7 +27,7 @@ class Launcher(
     val profile: Profile
 ) {
     val appDataDir: File = File(profile.appDataDirPath)
-    val platform: Platform = profile.platform
+    val platform = profile.platform
     lateinit var info: LaunchInfo
     lateinit var nativeLibraryDirName: String
     lateinit var loggingFilePath: String
@@ -33,7 +36,7 @@ class Launcher(
     //region loadLaunchInfo
 
     fun loadLaunchInfo(version: String): LaunchInfo {
-        val loadedVersions = mutableListOf<VersionJson>()
+        val loadedVersions = mutableListOf<ClientJson>()
         var versionJsonVersion: String? = version
         while (versionJsonVersion != null) {
             if (loadedVersions.any { it.id == versionJsonVersion })
@@ -52,7 +55,7 @@ class Launcher(
         return builder.build()
     }
 
-    fun loadVersionJson(version: String): VersionJson {
+    fun loadVersionJson(version: String): ClientJson {
         val jsonFile = appDataDir.resolve("versions").resolve(version).resolve("$version.json")
 
         val jsonText = try {
@@ -71,11 +74,51 @@ class Launcher(
     }
 
     // TODO Support ${arch}
-    private fun classifier(natives: Natives): String = when (platform) {
-        Platform.Linux -> natives.linux
-        Platform.MacOS -> natives.osx
-        Platform.Windows -> natives.windows
+    private fun classifier(natives: Natives): String = when (platform.os) {
+        Platform.OperatingSystem.Linux -> natives.linux
+        Platform.OperatingSystem.MacOS -> natives.osx
+        Platform.OperatingSystem.Windows -> natives.windows
     }
+
+    private fun checkRule(rule: Rule): Boolean {
+        if (rule.os != null) {
+            val os = rule.os
+            when (os.name) {
+                "osx" -> if (platform.os != Platform.OperatingSystem.MacOS) return false
+                "windows" -> if (platform.os != Platform.OperatingSystem.MacOS) return false
+            }
+            if (os.version != null) {
+                if (!os.version.toRegex().matches(platform.version)) return false
+            }
+            when (os.arch) {
+                "x86" -> if (platform.arch != Platform.Architecture.X86) return false
+            }
+        }
+        if (rule.features != null) {
+            // TODO: use real value
+            if (rule.features.has_custom_resolution != false)
+                return false
+            if (rule.features.is_demo_user != false)
+                return false
+        }
+        return true
+    }
+
+    private fun checkRules(rules: Collection<Rule>): Boolean {
+        if (rules.isEmpty()) return true
+        var allow = false
+        for (rule in rules) {
+            if (checkRule(rule)) {
+                when (rule.action) {
+                    RuleAction.allow -> allow = true
+                    RuleAction.disallow -> allow = false
+                }
+            }
+        }
+        return allow
+    }
+
+    private fun Sequence<Library>.filterWithRule(): Sequence<Library> = filter { checkRules(it.rules) }
 
     fun getLoadArtifacts(): Sequence<Artifact> {
         return info.libraries
@@ -83,10 +126,14 @@ class Launcher(
             .map { inList ->
                 inList
                     .asSequence()
+                    .filterWithRule()
                     .filter { it.extract == null }
                     .map {
                         it.downloads[classifier(it.natives)]
-                            ?: throw KnownErrorException.InvalidLibraries(it.name)
+                            ?: throw KnownErrorException.InvalidLibraries(
+                                it.name,
+                                "download for this platform not found."
+                            )
                     }
                     .groupBy { File(it.path).parentFile.parent }
                     .map { it.value.minBy { File(it.path).parentFile.name }!! }
@@ -113,11 +160,11 @@ class Launcher(
         val data = try {
             URL(url).openStream().readBytes()
         } catch (e: IOException) {
-            throw KnownErrorException.InvalidLibrary(path, e)
+            throw KnownErrorException.InvalidLibrary(path, "can't get library", e)
         }
 
         if (!verify(data, sha1, size))
-            throw KnownErrorException.InvalidLibrary(path)
+            throw KnownErrorException.InvalidLibrary(path, "verify failed.")
 
         file.parentFile.mkdirs()
         file.writeBytes(data)
@@ -156,7 +203,8 @@ class Launcher(
             .map { inList ->
                 inList
                     .asSequence()
-                    .filter { it.extract != null }
+                    .filterWithRule()
+                    .filter { it.natives.linux != "" || it.natives.osx != "" || it.natives.windows != "" }
                     .mapNotNull {
                         it.downloads[classifier(it.natives)]?.let { dl -> it to dl }
                     }
@@ -167,11 +215,12 @@ class Launcher(
 
         for ((library, artifact) in artifacts) {
             downloadCheck("$libraries/${artifact.path}", artifact.url, artifact.sha1, artifact.size)
-            val extract = library.extract!!
+            val extract = library.extract
             ZipInputStream(File("$libraries/${artifact.path}").inputStream()).use { zis ->
                 while (true) {
                     val entry = zis.nextEntry ?: break
-                    if (extract.exclude.orEmpty().any { entry.name.startsWith(it) }) continue
+                    if (entry.isDirectory) continue
+                    if (extract?.exclude.orEmpty().any { entry.name.startsWith(it) }) continue
                     extractTo.resolve(entry.name)
                         .apply { parentFile.mkdirs() }
                         .outputStream()
@@ -183,7 +232,7 @@ class Launcher(
 
     fun prepareLog() {
         val logging = info.logging["client"] ?: return
-        loggingFilePath = "$appDataDir/log_configs/${logging.file.id}"
+        loggingFilePath = "$appDataDir/assets/log_configs/${logging.file.id}"
         downloadCheck(loggingFilePath, logging.file.url, logging.file.sha1, logging.file.size)
     }
 
@@ -206,40 +255,15 @@ class Launcher(
         append(appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").path)
     }
 
-    fun osJvmArgument(): List<String> {
-        when (platform) {
-            Platform.Linux -> TODO()
-            Platform.MacOS -> {
-                return listOf(
-                    "-Xdock:name=Minecraft",
-                    "-Xdock:icon=$appDataDir/assets/objects/99/991b421dfd401f115241601b2b373140a8d78572"
-                )
-            }
-            Platform.Windows -> {
-                return listOf(
-                    "-Dos.name=Windows 10",
-                    "-Dos.version=10.0",
-                    "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump"
-                )
-            }
-        }
-    }
-
-    fun prefixedJvmArguments(): List<String> {
-        return listOf(
-            "-Djava.library.path=$appDataDir/bin/$nativeLibraryDirName",
-            "-Dminecraft.launcher.brand=anatawa12-mc-launcher",
-            "-Dminecraft.launcher.version=0.0.0",
-            "-Dminecraft.client.jar=${appDataDir.resolve("versions/${info.jar}/${info.jar}.jar")}"
-        )
-    }
+    val launcherBrand = "anatawa12-mc-launcher"
+    val launcherVersion = "0.0.0"
 
     fun logJvmArguments(): List<String> {
         val logging = info.logging["client"] ?: return listOf()
         return listOf(logging.argument.replace("\${path}", loggingFilePath))
     }
 
-    fun minecraftArguments(): List<String> {
+    fun processArguments(arguments: List<ArgumentElement>): List<String> {
         val auth = loginer.auth
         val selectedProfile = auth.selectedProfile
         val map = mapOf(
@@ -247,7 +271,7 @@ class Launcher(
             "version_name" to info.id,
             "game_directory" to profile.gameDirPath,
             "assets_root" to "$appDataDir/assets",
-            "assets_index_name" to info.id,
+            "assets_index_name" to info.assets,
             "auth_uuid" to selectedProfile.id.toString().replace("-", ""),
             "auth_access_token" to auth.authenticatedToken,
             "user_properties" to GsonBuilder().registerTypeAdapter(
@@ -255,24 +279,38 @@ class Launcher(
                 OldPropertyMapSerializer()
             ).create().toJson(auth.userProperties),
             "user_type" to auth.userType.getName(),
-            "version_type" to info.type
+            "version_type" to info.type,
+
+            // slince 1.13(launcher v21)
+            "resolution_width" to null,
+            "resolution_height" to null,
+            "natives_directory" to "$appDataDir/bin/$nativeLibraryDirName",
+            "launcher_name" to launcherBrand,
+            "launcher_version" to launcherVersion,
+            "classpath" to createClassPath(),
+
+            // internal use
+            "anatawa12_client_jar" to appDataDir.resolve("versions/${info.jar}/${info.jar}.jar").toString()
         )
 
-        return info.minecraftArguments.split(' ').map { it.replace("""\$\{(.*?)\}""".toRegex(), mapTransformer(map)) }
+        return arguments
+            .flatMap { processArgumentElement(it) }
+            .map { it.replace("""\$\{(.*?)\}""".toRegex(), mapTransformer(map)) }
     }
 
+    fun processArgumentElement(element: ArgumentElement) = when (element) {
+        is StringArgumentElement -> listOf(element.argument)
+        is ConditionalArgumentElement -> if (checkRules(element.rules)) element.value else emptyList()
+    }
 
     fun jvmArguments(): List<String> {
         val list = mutableListOf<String>()
 
-        list += osJvmArgument()
-        list += prefixedJvmArguments()
-        list += "-cp"
-        list += createClassPath()
+        list += processArguments(info.jvmArguments ?: untilV21JvmArguments)
         list += profile.jvmArguments
         list += logJvmArguments()
         list += info.mainClass
-        list += minecraftArguments()
+        list += processArguments(info.minecraftArguments)
 
         return list
     }
@@ -298,13 +336,79 @@ class Launcher(
     companion object {
         val moshi = Moshi.Builder()
             .add(DateJsonAdapter)
+            .add(NonArrayIfSingleAdapterFactory)
+            .add(ArgumentElement.AdapterFactory)
             .add(KotlinJsonAdapterFactory())
             .build()
 
-        val versionJsonAdapter = moshi.adapter(VersionJson::class.java)
+        val versionJsonAdapter = moshi.adapter(ClientJson::class.java)
 
-        fun mapTransformer(map: Map<String, CharSequence>): (MatchResult) -> CharSequence = { result ->
+        fun mapTransformer(map: Map<String, CharSequence?>): (MatchResult) -> CharSequence = { result ->
             map[result.groupValues[1]] ?: error("unknown: ${result.groupValues[1]}")
         }
+
+        val untilV21JvmArguments = persistentListOf(
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            name = "osx"
+                        )
+                    )
+                ),
+                listOf(
+                    "-Xdock:name=Minecraft",
+                    "-Xdock:icon=\${assets_root}/objects/99/991b421dfd401f115241601b2b373140a8d78572"
+                )
+            ),
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            name = "windows",
+                            version = """^10\\."""
+                        )
+                    )
+                ),
+                listOf(
+                    "-Dos.name=Windows 10",
+                    "-Dos.version=10.0"
+                )
+            ),
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            name = "windows"
+                        )
+                    )
+                ),
+                listOf(
+                    "-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump"
+                )
+            ),
+            ConditionalArgumentElement(
+                listOf(
+                    Rule(
+                        action = RuleAction.allow,
+                        os = RuleOS(
+                            arch = "x86"
+                        )
+                    )
+                ),
+                listOf(
+                    "-Xss1M"
+                )
+            ),
+            StringArgumentElement("-Djava.library.path=\${natives_directory}"),
+            StringArgumentElement("-Dminecraft.launcher.brand=\${launcher_name}"),
+            StringArgumentElement("-Dminecraft.launcher.version=\${launcher_version}"),
+            StringArgumentElement("-Dminecraft.client.jar=\${anatawa12_client_jar}"),
+            StringArgumentElement("-cp"),
+            StringArgumentElement("-\${classpath}")
+        )
     }
 }
